@@ -7,7 +7,7 @@ import {
   Navigate,
   useMatch,
   useParams,
-  useNavigate,
+  useNavigate
 } from "react-router-dom"
 
 
@@ -33,6 +33,14 @@ const AnecdoteList = ({ anecdotes }) => (
   </div>
 )
 // {anecdotes.map(anecdote => <Link to={`/anecdotes/${anecdote.id}`}><li key={anecdote.id}>{anecdote.content}</li></Link>)}
+
+const Notification = ({message}) => {
+  return (
+    <div>
+      {message}
+    </div>
+  )
+}
 
 const About = () => (
   <div>
@@ -61,6 +69,8 @@ const CreateNew = (props) => {
   const [author, setAuthor] = useState('')
   const [info, setInfo] = useState('')
 
+  const navigate = useNavigate()
+
   const clearInputs = () => {
     setInfo('')
     setAuthor('')
@@ -76,6 +86,9 @@ const CreateNew = (props) => {
       votes: 0
     })
 
+    props.showNotification("yes")
+
+    navigate('/anecdotes')
     clearInputs()
 
   }
@@ -96,14 +109,12 @@ const CreateNew = (props) => {
           url for more info
           <input name='info' value={info} onChange={(e)=> setInfo(e.target.value)} />
         </div>
-        <button>create</button>
+        <button type="submit">create</button>
       </form>
     </div>
   )
 
 }
-
-
 
 const Menu = () => {
   const padding = {
@@ -136,9 +147,8 @@ const App = () => {
     }
   ])
 
-
-
-  const [notification, setNotification] = useState('')
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationVisible, setNotificationVisible] = useState(false);
 
   const addNew = (anecdote) => {
     anecdote.id = Math.round(Math.random() * 10000)
@@ -147,6 +157,17 @@ const App = () => {
 
   const anecdoteById = (id) =>
     anecdotes.find(a => a.id === id)
+
+  const showNotification = (message) => {
+    setNotificationMessage(message);
+    setNotificationVisible(true);
+
+    // Automatically hide the notification after 5 seconds
+    setTimeout(() => {
+      setNotificationVisible(false);
+    }, 5000);
+  };
+  
 
   const vote = (id) => {
     const anecdote = anecdoteById(id)
@@ -168,12 +189,13 @@ const App = () => {
   return (
     <div>
       <h1>Software anecdotes</h1>
+      {notificationVisible && <Notification message={notificationMessage}/>}
       <Menu />
       <Routes>
         <Route path="/anecdotes/:id" element={<SingleAnecdote anecdote={anecdote} />} />
         <Route path="/about" element={<About />} />
         <Route path="/anecdotes" element={<AnecdoteList anecdotes={anecdotes}/>} />
-        <Route path="/createnew" element={<CreateNew addNew={addNew}/>} />
+        <Route path="/createnew" element={<CreateNew setNotificationMessage={setNotificationMessage} showNotification={showNotification} addNew={addNew}/>} />
       </Routes>
 
       <Footer />
